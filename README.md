@@ -76,6 +76,10 @@ the linked PDF does include them.
 - `prefers-reduced-motion: reduce` turns off all motion, including smooth scroll.
 - CSS is inlined (`experimental.inlineCss`); no third-party requests; CSP and
   security headers in `next.config.ts`.
+- AI crawlers, scrapers and scanners are refused with a 403 by
+  `src/proxy.ts`; see [SECURITY.md](SECURITY.md) for everything security-related
+  and how to check it. Plain `curl` is blocked too — pass a browser
+  User-Agent (`curl -A "Mozilla/5.0 Chrome/130" …`) when testing.
 - Skip link, landmarks, visible focus rings, native radios/popover, AA text
   contrast in both themes.
 

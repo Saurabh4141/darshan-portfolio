@@ -16,6 +16,9 @@ const csp = [
   "object-src 'none'",
   "base-uri 'self'",
   "form-action 'self'",
+  "frame-src 'none'",
+  "worker-src 'self'",
+  "manifest-src 'self'",
   "frame-ancestors 'none'",
   "upgrade-insecure-requests",
 ].join("; ");
@@ -24,11 +27,25 @@ const securityHeaders = [
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "X-Frame-Options", value: "DENY" },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+  // Browsers only honour this over HTTPS, so it is harmless on localhost.
+  {
+    key: "Strict-Transport-Security",
+    value: "max-age=63072000; includeSubDomains; preload",
+  },
   {
     key: "Permissions-Policy",
-    value: "camera=(), microphone=(), geolocation=(), payment=(), usb=(), browsing-topics=()",
+    value:
+      "camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=(), browsing-topics=()",
   },
+  // Process isolation from other origins (no window.opener access, no
+  // cross-origin popups reaching into this page).
   { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
+  { key: "X-Permitted-Cross-Domain-Policies", value: "none" },
+  // Machine-readable opt-out of text-and-data mining (W3C TDMRep, EU DSM
+  // Directive art. 4), plus the noai convention some crawlers honour. Search
+  // indexing is unaffected.
+  { key: "tdm-reservation", value: "1" },
+  { key: "X-Robots-Tag", value: "noai, noimageai" },
   ...(isProd ? [{ key: "Content-Security-Policy", value: csp }] : []),
 ];
 
