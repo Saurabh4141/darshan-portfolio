@@ -5,7 +5,8 @@ import FloatingLinks from "@/components/FloatingLinks";
 import SiteFooter from "@/components/SiteFooter";
 import SiteHeader from "@/components/SiteHeader";
 import { profile } from "@/content/profile";
-import { KEYWORDS, SITE_DESCRIPTION, SITE_TITLE, SITE_URL, personJsonLd } from "@/lib/seo";
+import { KEYWORDS, SITE_DESCRIPTION, SITE_TITLE, SITE_URL } from "@/lib/seo";
+import { personJsonLd } from "@/lib/structured-data";
 import "./globals.css";
 
 // Self-hosted at build time: no request to Google from the visitor's browser,
@@ -31,8 +32,20 @@ export const metadata: Metadata = {
   keywords: KEYWORDS,
   authors: [{ name: profile.name, url: SITE_URL }],
   creator: profile.name,
+  publisher: profile.name,
   alternates: { canonical: "/" },
-  robots: { index: true, follow: true },
+  // Icons come from the app/ file conventions (icon.svg, apple-icon.tsx).
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-snippet": -1,
+      "max-image-preview": "large",
+      "max-video-preview": -1,
+    },
+  },
   openGraph: {
     type: "profile",
     url: SITE_URL,
