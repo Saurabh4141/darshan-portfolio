@@ -8,8 +8,11 @@
  * resume PDF served from public/, which is linked from the site.)
  */
 
-/** Set NEXT_PUBLIC_SITE_URL to the real domain before deploying. */
-export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000").replace(/\/$/, "");
+/**
+ * The canonical address (no www; the server redirects www and http here).
+ * NEXT_PUBLIC_SITE_URL overrides it at build time, e.g. for a staging copy.
+ */
+export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://darshangaikwad.cloud").replace(/\/$/, "");
 
 export const profile = {
   name: "Darshan Gaikwad",

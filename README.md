@@ -3,6 +3,8 @@
 Personal site for Darshan Gaikwad, Computer Science graduate (BCS, 2026) and
 entry-level software developer (Python · AI · Flutter), Pune.
 
+**Live address:** https://darshangaikwad.cloud (not deployed yet)
+
 A single-page Next.js site, statically prerendered, with no runtime
 dependencies beyond Next.js and React.
 
@@ -111,48 +113,107 @@ The site needs a Node.js server (`next start`): the bot blocking
 (`src/proxy.ts`) and the security headers run there. A purely static host
 (GitHub Pages, a plain bucket) would serve the pages but silently drop both.
 
-### 1. Set the domain — required
+### The address
 
-`NEXT_PUBLIC_SITE_URL` is baked in **at build time** and feeds canonical
-links, the sitemap, robots.txt and the link-preview image. Without it they
-all point at `http://localhost:3000`, and the build prints a warning.
+The canonical address is **`https://darshangaikwad.cloud`** (no `www`). It is
+set in `src/content/profile.ts` and baked in at build time, feeding canonical
+links, the sitemap, robots.txt, structured data and the link-preview image —
+so a plain `npm run build` is already correct for production.
+`NEXT_PUBLIC_SITE_URL` overrides it for a build meant for somewhere else (a
+staging copy, say; see `.env.example`).
 
-```bash
-cp .env.example .env.production    # then edit the URL, or:
-NEXT_PUBLIC_SITE_URL=https://your-domain.example npm run build
-```
+### 1. DNS
 
-Changing the domain later means rebuilding.
+At the domain registrar, point both names at the server's IP address:
+
+| Type | Name | Value |
+| --- | --- | --- |
+| A | `@` (darshangaikwad.cloud) | server IPv4 |
+| A | `www` | server IPv4 |
+
+(Plus matching `AAAA` records if the server has IPv6.)
 
 ### 2. Build and run
 
 ```bash
+git clone https://github.com/Saurabh4141/darshan-portfolio.git
+cd darshan-portfolio
 npm ci
 npm run build
-npm start -- -p 3002        # pick a port free on the server
+npm start -- -p 3002        # pick a port that's free on the server
 ```
 
-To keep it running across restarts, use a process manager such as PM2
-(`pm2 start npm --name darshan-portfolio -- start -- -p 3002 && pm2 save`).
+To keep it running across reboots, use a process manager such as PM2:
 
-### 3. Put a web server in front
+```bash
+pm2 start npm --name darshan-portfolio -- start -- -p 3002
+pm2 save
+```
 
-nginx (or similar) as a reverse proxy to that port, with:
+To ship an update later: `git pull && npm ci && npm run build && pm2 restart darshan-portfolio`.
 
-- HTTPS via Let's Encrypt (Certbot, auto-renewing);
-- 301 redirects from `http://` and the bare/`www` variant to the one
-  canonical `https://` address (the same as `NEXT_PUBLIC_SITE_URL`);
-- `server_tokens off;` so nginx doesn't show its version.
+### 3. nginx in front, with HTTPS
+
+Get a certificate covering both names (`sudo certbot --nginx -d
+darshangaikwad.cloud -d www.darshangaikwad.cloud`), then end up with three
+server blocks — everything redirects to the one canonical address, which
+proxies to the app:
+
+```nginx
+# http (both names) → https://darshangaikwad.cloud
+server {
+    listen 80;
+    listen [::]:80;
+    server_name darshangaikwad.cloud www.darshangaikwad.cloud;
+    return 301 https://darshangaikwad.cloud$request_uri;
+}
+
+# https://www → https://darshangaikwad.cloud
+server {
+    listen 443 ssl;
+    listen [::]:443 ssl;
+    http2 on;
+    server_name www.darshangaikwad.cloud;
+    ssl_certificate     /etc/letsencrypt/live/darshangaikwad.cloud/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/darshangaikwad.cloud/privkey.pem;
+    return 301 https://darshangaikwad.cloud$request_uri;
+}
+
+# The site
+server {
+    listen 443 ssl;
+    listen [::]:443 ssl;
+    http2 on;
+    server_name darshangaikwad.cloud;
+    ssl_certificate     /etc/letsencrypt/live/darshangaikwad.cloud/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/darshangaikwad.cloud/privkey.pem;
+    server_tokens off;
+
+    location / {
+        proxy_pass http://127.0.0.1:3002;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+```
+
+(`http2 on;` needs nginx 1.25.1+; on older versions write
+`listen 443 ssl http2;` instead.) Test with `sudo nginx -t`, then
+`sudo systemctl reload nginx`.
 
 ### Go-live checklist
 
-- [ ] `NEXT_PUBLIC_SITE_URL` set to the live `https://` address before `npm run build`
-- [ ] HTTPS works and every variant redirects to the canonical address
-- [ ] `public/.well-known/security.txt`: add `Canonical: https://<domain>/.well-known/security.txt`
-- [ ] Check with a browser User-Agent: page 200, `GPTBot` 403, headers present (commands in [SECURITY.md](SECURITY.md))
-- [ ] `/robots.txt` and `/sitemap.xml` show the real domain
+- [ ] DNS: `darshangaikwad.cloud` and `www` resolve to the server
+- [ ] App built and running under PM2; survives a reboot (`pm2 startup`)
+- [ ] https://darshangaikwad.cloud loads with a valid certificate
+- [ ] `http://…` and `https://www.…` both 301 to `https://darshangaikwad.cloud/`
+- [ ] Browser User-Agent gets 200, `GPTBot` gets 403, headers present — commands in [SECURITY.md](SECURITY.md#checking-it)
+- [ ] `/robots.txt`, `/sitemap.xml` and `/.well-known/security.txt` load
+- [ ] The resume pill opens the PDF
 - [ ] Paste the URL into LinkedIn's [Post Inspector](https://www.linkedin.com/post-inspector/) to check the preview card
-- [ ] Optionally submit the sitemap in Google Search Console
+- [ ] Optionally add the site to Google Search Console and submit `https://darshangaikwad.cloud/sitemap.xml`
 
 ## Performance and accessibility
 

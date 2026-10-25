@@ -1,8 +1,9 @@
 # Security
 
-What protects Darshan Gaikwad's portfolio, where each piece lives, and what it
-does not cover. Verified against a local production build (`npm run build &&
-npm start`) on 2026-10-25; the site is not deployed yet.
+What protects https://darshangaikwad.cloud, where each piece lives, and what
+it does not cover. Verified against a local production build (`npm run build
+&& npm start`) on 2026-10-25, before the first deploy; re-run the checks at
+the end against the live site once it is up.
 
 ## 1. Bot and scraper blocking — `src/proxy.ts`, `src/lib/bots.ts`
 
@@ -60,8 +61,8 @@ Search indexing is not affected.
 - No third-party scripts, analytics, trackers or external fonts. Everything is
   self-hosted, which is why the CSP can stay strict.
 - All pages are pre-rendered static HTML.
-- No secrets in the code. The only environment variable is the public
-  `NEXT_PUBLIC_SITE_URL`; `.env*` files are git-ignored.
+- No secrets in the code, and no environment variables needed (the optional
+  `NEXT_PUBLIC_SITE_URL` is a public address). `.env*` files are git-ignored.
 - Dependencies: only next, react and react-dom. `npm audit`: 0 vulnerabilities
   (2026-10-25).
 - `/.env`, `/.git/config`, `/wp-login.php`, `/api/*` and path tricks like
@@ -70,19 +71,17 @@ Search indexing is not affected.
 ## 6. Contact for security reports — `public/.well-known/security.txt`
 
 This is a standard file telling researchers how to report a problem. It
-**expires on 2027-10-24**; update the `Expires` date before then. Once the
-domain is known, add a `Canonical:` line pointing at
-`https://<domain>/.well-known/security.txt`.
+**expires on 2027-10-24**; update the `Expires` date before then. Its
+`Canonical:` line is `https://darshangaikwad.cloud/.well-known/security.txt`.
 
 ## 7. Server — to do at deployment (outside this repo)
 
 Not set up yet. When the site goes live:
 
-- Build with `NEXT_PUBLIC_SITE_URL=https://<domain>` so robots.txt, the
-  sitemap and canonical links use the real address.
-- HTTPS with a Let's Encrypt certificate (Certbot, auto-renewing).
-- Redirect `http://` and the bare/`www` variant with a 301 to the one
-  canonical `https://` address.
+- HTTPS with a Let's Encrypt certificate covering `darshangaikwad.cloud` and
+  `www.darshangaikwad.cloud` (Certbot, auto-renewing).
+- 301 redirects from `http://` and from `www.darshangaikwad.cloud` to
+  `https://darshangaikwad.cloud`.
 - Hide the web server's version number (nginx: `server_tokens off;`).
 
 ## What this does not cover
@@ -101,14 +100,17 @@ Not set up yet. When the site goes live:
 
 ## Checking it
 
-A plain `curl` is blocked, so pretend to be a browser. Replace the URL with
-the live address once deployed:
+A plain `curl` is blocked, so pretend to be a browser. Use
+`URL=http://localhost:3000` to check a local build:
 
 ```bash
-URL=http://localhost:3000
+URL=https://darshangaikwad.cloud
 curl -s -o /dev/null -w "%{http_code}\n" -A "Mozilla/5.0 Chrome/130" $URL/   # 200
 curl -s -o /dev/null -w "%{http_code}\n" -A "GPTBot/1.2" $URL/              # 403
 curl -s -o /dev/null -w "%{http_code}\n" $URL/                              # 403 (curl's own UA)
 curl -sI -A "Mozilla/5.0 Chrome/130" $URL/                                # headers
 curl -s -A "Mozilla/5.0 Chrome/130" $URL/robots.txt                       # rules
+# Live only: every other address should 301 to https://darshangaikwad.cloud/
+curl -sI -A "Mozilla/5.0 Chrome/130" http://darshangaikwad.cloud/ | grep -iE "^HTTP|^location"
+curl -sI -A "Mozilla/5.0 Chrome/130" https://www.darshangaikwad.cloud/ | grep -iE "^HTTP|^location"
 ```
