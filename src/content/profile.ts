@@ -18,7 +18,7 @@ export const profile = {
   lastName: "Gaikwad",
   initials: "DG",
   role: "Software Developer",
-  focus: "Python · AI · Mobile",
+  focus: "Python · AI · Flutter",
   location: "Pune, Maharashtra",
   email: "darshgaikwad2005@gmail.com",
   linkedin: "https://linkedin.com/in/darshan-gaikwad-13b139286",

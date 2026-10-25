@@ -1,7 +1,7 @@
 # Darshan Gaikwad — Portfolio
 
 Personal site for Darshan Gaikwad, Computer Science graduate (BCS, 2026) and
-entry-level software developer (Python · AI · Mobile), Pune.
+entry-level software developer (Python · AI · Flutter), Pune.
 
 ## Design idea: sensor to screen, at a temperature
 
