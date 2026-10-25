@@ -3,6 +3,9 @@
 Personal site for Darshan Gaikwad, Computer Science graduate (BCS, 2026) and
 entry-level software developer (Python · AI · Flutter), Pune.
 
+A single-page Next.js site, statically prerendered, with no runtime
+dependencies beyond Next.js and React.
+
 ## Design idea: sensor to screen, at a temperature
 
 Darshan's strongest piece of work is the Thermowear Jacket: a DS18B20 sensor
@@ -22,7 +25,8 @@ The site is built on that:
   His initial and his Thermowear project in one shape. In the header the
   mercury is live: its level follows the page heat, and it shoots up on
   hover. Geometry in `src/lib/mark.ts`; used by `<Logo>`, the favicon
-  (`src/app/icon.svg`, hand-copied) and the Open Graph card.
+  (`src/app/icon.svg`, hand-copied), the Apple touch icon and the Open Graph
+  card.
 - **Backdrop: a circuit board** (`Backdrop.tsx`). A fixed layer behind the
   page: a perfboard dot grid toward the edges, PCB traces and pads running in
   from both sides with an occasional signal pulse, an ESP32-style module in
@@ -41,47 +45,45 @@ pill at the bottom right.
 | 02 Experience | Both 2026 internships on a shared Jan–Mar timeline (they overlap) |
 | 03 Toolkit | The resume's skill groups as a spec sheet, each with what backs it |
 | 04 Education | BCS, HSC, SSC; certifications; NSS volunteering |
-| 05 Contact | Email (with copy button) and LinkedIn |
+| 05 Contact | Email (with copy button), LinkedIn and the resume |
 
 Type: Bricolage Grotesque + IBM Plex Mono, self-hosted at build time via
 `next/font`. Light and dark themes follow the system setting.
 
-## Content and accuracy
+## Project structure
+
+```
+src/
+  app/          layout, page, 404, icon.svg, apple-icon, opengraph-image,
+                robots, sitemap, globals.css (tokens + heat system)
+  components/   one component + CSS module per section; Backdrop,
+                FloatingLinks, Logo, icons; MobileMenu and CopyEmail are
+                the only client components
+  content/      profile.ts — every word and fact on the site
+  lib/          seo.ts (metadata, JSON-LD), mark.ts (logo geometry),
+                bots.ts (crawler allow/block lists)
+  proxy.ts      bot and scraper blocking (403)
+public/
+  Darshan_Gaikwad_Resume.pdf   the published resume
+  .well-known/security.txt     security contact
+next.config.ts  security headers, CSP, no-AI-training headers
+SECURITY.md     every security measure, its limits, and how to check it
+```
+
+## Content and the resume
 
 All copy lives in [`src/content/profile.ts`](src/content/profile.ts) and comes
-from the resume.
+from Darshan's resume. Nothing is invented; when editing, keep it that way.
 
-The resume exists twice:
-
-- `Darshan Gaiwkad.pdf` (project root) — the original. Never served, and
-  git-ignored (`/*.pdf`).
-- `public/Darshan_Gaikwad_Resume.pdf` — an identical copy, served at
+- The **published resume** is `public/Darshan_Gaikwad_Resume.pdf`, served at
   `/Darshan_Gaikwad_Resume.pdf` and linked from the resume pill and Contact
-  (`profile.resume`). To publish a new CV, replace this file (or add a new one
-  and update `profile.resume`).
-
-The page text leaves out the phone number and the HSC/SSC percentages; note
-the linked PDF does include them.
-
-## Performance and accessibility
-
-- Statically prerendered; no runtime dependencies beyond Next.js and React.
-- Two small client components: `MobileMenu` (closes the native popover after a
-  link is chosen) and `CopyEmail`. Everything else — including the backdrop,
-  profile rail and resume pill — ships no JavaScript.
-- Animations are CSS-only on `transform`/`opacity`; section reveals use view
-  timelines, so content is visible without them and nothing waits on script.
-  No loader, and the hero name and intro (the LCP candidates) are never
-  animated in. The few load-in effects run a fixed number of times.
-- `prefers-reduced-motion: reduce` turns off all motion, including smooth scroll.
-- CSS is inlined (`experimental.inlineCss`); no third-party requests; CSP and
-  security headers in `next.config.ts`.
-- AI crawlers, scrapers and scanners are refused with a 403 by
-  `src/proxy.ts`; see [SECURITY.md](SECURITY.md) for everything security-related
-  and how to check it. Plain `curl` is blocked too — pass a browser
-  User-Agent (`curl -A "Mozilla/5.0 Chrome/130" …`) when testing.
-- Skip link, landmarks, visible focus rings, native radios/popover, AA text
-  contrast in both themes.
+  (`profile.resume`). To publish a new CV, replace this file (same name), or
+  add a new one and update `profile.resume`.
+- The **original** resume file is kept outside this repository. Any `*.pdf`
+  dropped in the project root is git-ignored (`/*.pdf`), so a working copy
+  there is never committed by accident.
+- The page text leaves out the phone number and the HSC/SSC percentages, but
+  the published PDF includes them.
 
 ## Getting started
 
@@ -96,13 +98,92 @@ npm run dev        # http://localhost:3000
 | --- | --- |
 | `npm run dev` | Development server |
 | `npm run build` | Production build |
-| `npm start` | Serve the production build |
+| `npm start` | Serve the production build (port 3000; `npm start -- -p 3002` for another) |
 | `npm run lint` | ESLint (Next core-web-vitals + TypeScript rules) |
 | `npm run typecheck` | `tsc --noEmit` |
 
-Before deploying, set the real domain so canonical URLs, the sitemap and
-Open Graph tags are correct:
+Plain `curl` gets a 403 from the bot blocking (see [SECURITY.md](SECURITY.md));
+pass a browser User-Agent when testing: `curl -A "Mozilla/5.0 Chrome/130" …`.
+
+## Deploying
+
+The site needs a Node.js server (`next start`): the bot blocking
+(`src/proxy.ts`) and the security headers run there. A purely static host
+(GitHub Pages, a plain bucket) would serve the pages but silently drop both.
+
+### 1. Set the domain — required
+
+`NEXT_PUBLIC_SITE_URL` is baked in **at build time** and feeds canonical
+links, the sitemap, robots.txt and the link-preview image. Without it they
+all point at `http://localhost:3000`, and the build prints a warning.
 
 ```bash
+cp .env.example .env.production    # then edit the URL, or:
 NEXT_PUBLIC_SITE_URL=https://your-domain.example npm run build
 ```
+
+Changing the domain later means rebuilding.
+
+### 2. Build and run
+
+```bash
+npm ci
+npm run build
+npm start -- -p 3002        # pick a port free on the server
+```
+
+To keep it running across restarts, use a process manager such as PM2
+(`pm2 start npm --name darshan-portfolio -- start -- -p 3002 && pm2 save`).
+
+### 3. Put a web server in front
+
+nginx (or similar) as a reverse proxy to that port, with:
+
+- HTTPS via Let's Encrypt (Certbot, auto-renewing);
+- 301 redirects from `http://` and the bare/`www` variant to the one
+  canonical `https://` address (the same as `NEXT_PUBLIC_SITE_URL`);
+- `server_tokens off;` so nginx doesn't show its version.
+
+### Go-live checklist
+
+- [ ] `NEXT_PUBLIC_SITE_URL` set to the live `https://` address before `npm run build`
+- [ ] HTTPS works and every variant redirects to the canonical address
+- [ ] `public/.well-known/security.txt`: add `Canonical: https://<domain>/.well-known/security.txt`
+- [ ] Check with a browser User-Agent: page 200, `GPTBot` 403, headers present (commands in [SECURITY.md](SECURITY.md))
+- [ ] `/robots.txt` and `/sitemap.xml` show the real domain
+- [ ] Paste the URL into LinkedIn's [Post Inspector](https://www.linkedin.com/post-inspector/) to check the preview card
+- [ ] Optionally submit the sitemap in Google Search Console
+
+## Performance and accessibility
+
+- Statically prerendered. Two small client components (`MobileMenu`,
+  `CopyEmail`); everything else — backdrop, profile rail, resume pill —
+  ships no JavaScript.
+- Animations are CSS-only on `transform`/`opacity`; section reveals use view
+  timelines, so content is visible without them and nothing waits on script.
+  No loader, and the hero name and intro (the LCP candidates) are never
+  animated in. The few load-in effects run a fixed number of times.
+- `prefers-reduced-motion: reduce` turns off all motion, including smooth scroll.
+- CSS is inlined (`experimental.inlineCss`); fonts are self-hosted; no
+  third-party requests.
+- Skip link, landmarks, visible focus rings, native radios/popover, AA text
+  contrast in both themes.
+
+Measured on a local production build (Lighthouse 13.5, Chrome 150, Oct 2026):
+desktop 100 in every category; mobile (simulated slow 4G, 4× CPU)
+performance 93–97 over five runs, accessibility, best practices and SEO 100,
+CLS 0. Real-world numbers depend on the server and network.
+
+## Security
+
+Bot and scraper blocking, robots.txt rules, "no AI training" headers,
+security headers, security.txt, and what none of it covers — all in
+[SECURITY.md](SECURITY.md).
+
+## Upkeep
+
+- **security.txt expires on 2027-10-24.** Update the `Expires` date in
+  `public/.well-known/security.txt` before then.
+- **New crawlers** appear over time; add them to `src/lib/bots.ts` (shared with
+  the gaikwadsaurabh.com site — keep the two in step).
+- **Content**: edit `src/content/profile.ts`, rebuild, redeploy.

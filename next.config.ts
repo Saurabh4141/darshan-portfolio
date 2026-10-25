@@ -2,6 +2,16 @@ import type { NextConfig } from "next";
 
 const isProd = process.env.NODE_ENV === "production";
 
+// Without the real domain, canonical links, the sitemap, robots.txt and the
+// link-preview image all point at localhost. Not fatal (local production
+// builds are useful), but it must never go live that way.
+if (isProd && !process.env.NEXT_PUBLIC_SITE_URL) {
+  console.warn(
+    "\n⚠  NEXT_PUBLIC_SITE_URL is not set — URLs will point at http://localhost:3000.\n" +
+      "   Set it to the live domain before a deploy build (see .env.example).\n",
+  );
+}
+
 // The site loads nothing from third parties: fonts are self-hosted by
 // next/font and there is no analytics. 'unsafe-inline' on script-src covers the
 // inline bootstrap scripts Next emits for statically rendered pages. The policy
