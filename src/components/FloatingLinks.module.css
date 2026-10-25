@@ -1,0 +1,191 @@
+/* ------------------------------------------------------------------
+   Profile rail: icon buttons in a slim capsule on a hairline, pinned to the
+   left edge. 36px wide at 6px from the edge, so it sits inside the page
+   gutter and never covers content. Wide screens only.
+   ------------------------------------------------------------------ */
+.rail {
+  display: none;
+}
+
+@media (min-width: 1100px) {
+  .rail {
+    position: fixed;
+    left: 6px;
+    bottom: 0;
+    z-index: 40;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+  }
+}
+
+.railList {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  background: var(--bg-2);
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+}
+
+.railLink {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  color: var(--ink);
+  border-radius: 50%;
+  transition: color 0.2s, background-color 0.2s;
+}
+
+.icon {
+  width: 17px;
+  height: 17px;
+  transition: transform 0.3s var(--ease-out);
+}
+
+.railLink:hover,
+.railLink:focus-visible {
+  color: var(--bg);
+  background: var(--ink);
+}
+
+.railLink:hover .icon,
+.railLink:focus-visible .icon {
+  transform: scale(1.08);
+}
+
+/* Label that slides out beside the icon on hover or keyboard focus; it is
+   also the link's accessible name. */
+.tip {
+  position: absolute;
+  left: calc(100% + 10px);
+  top: 50%;
+  padding: 4px 9px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  white-space: nowrap;
+  color: var(--bg);
+  background: var(--ink);
+  border-radius: 6px;
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-6px, -50%);
+  transition: opacity 0.2s, transform 0.25s var(--ease-out);
+}
+
+.railLink:hover .tip,
+.railLink:focus-visible .tip {
+  opacity: 1;
+  transform: translate(0, -50%);
+}
+
+/* The hairline below the capsule is a short heat gauge. */
+.railRule {
+  width: 2px;
+  height: 64px;
+  border-radius: 2px;
+  background: linear-gradient(to top, var(--accent), var(--rule));
+}
+
+@keyframes rail-out {
+  to {
+    opacity: 0;
+    visibility: hidden;
+    translate: -16px 0;
+  }
+}
+
+@supports (animation-timeline: view()) {
+  .rail {
+    animation: rail-out linear both;
+    animation-timeline: --contact;
+    animation-range: entry 0% entry 35%;
+  }
+}
+
+/* ------------------------------------------------------------------
+   Resume pill: bottom right, ink with a heat-coloured tag.
+   ------------------------------------------------------------------ */
+.resume {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 40;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 46px;
+  padding: 0 7px 0 18px;
+  font-weight: 700;
+  font-size: 0.9375rem;
+  color: var(--bg);
+  background: var(--ink);
+  border-radius: 999px;
+  box-shadow: 0 6px 24px -10px rgb(0 0 0 / 0.45);
+  transition: transform 0.3s var(--ease-out), box-shadow 0.3s;
+}
+
+/* Paper tag with a heat dot: the text keeps full contrast at any heat. */
+.resumeTag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: var(--ink);
+  background: var(--bg);
+  border-radius: 999px;
+  transition: transform 0.3s var(--ease-out);
+}
+
+.resumeTag::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.resume:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 28px -12px rgb(0 0 0 / 0.5);
+}
+
+.resume:hover .resumeTag {
+  transform: rotate(-4deg);
+}
+
+.resume:active {
+  transform: scale(0.97);
+}
+
+/* Enters once on load, a beat after the hero. Animates `translate`, not
+   `transform`, so the filled animation doesn't override the hover lift. */
+@keyframes pill-in {
+  from {
+    opacity: 0;
+    translate: 0 16px;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .resume {
+    animation: pill-in 0.6s var(--ease-out) 0.6s both;
+  }
+}
+
+@media (max-width: 600px) {
+  .resume {
+    right: 12px;
+    bottom: 12px;
+    min-height: 40px;
+    padding: 0 6px 0 14px;
+    font-size: 0.875rem;
+  }
+}

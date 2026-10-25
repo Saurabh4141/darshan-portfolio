@@ -1,0 +1,401 @@
+.hero {
+  padding-block: clamp(36px, 7vw, 88px) clamp(56px, 8vw, 104px);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: clamp(16px, 2.5vw, 32px);
+}
+
+.grid > * {
+  grid-column: 1 / -1;
+}
+
+/* Load-in for the supporting pieces only (never the name or intro text). */
+@media (prefers-reduced-motion: no-preference) {
+  .status,
+  .role,
+  .path,
+  .thermo,
+  .facts {
+    animation: enter 0.8s var(--ease-out) both;
+  }
+  .role {
+    animation-delay: 0.08s;
+  }
+  .path {
+    animation-delay: 0.16s;
+  }
+  .thermo {
+    animation-delay: 0.24s;
+  }
+  .facts {
+    animation-delay: 0.3s;
+  }
+}
+
+@keyframes enter {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+}
+
+.status {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: clamp(20px, 4vw, 40px);
+  font-size: 0.8125rem;
+  color: var(--ink-2);
+}
+
+.dot {
+  position: relative;
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+/* Three pings on load, then still: no endless motion. */
+.dot::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 1.5px solid var(--accent);
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .dot::after {
+    animation: ping 1.6s var(--ease-out) 0.6s 3;
+  }
+}
+
+@keyframes ping {
+  from {
+    opacity: 0.9;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(3.2);
+  }
+}
+
+.name {
+  display: flex;
+  flex-direction: column;
+  font-size: clamp(3.75rem, 15.5vw, 11.5rem);
+  font-weight: 800;
+  line-height: 0.86;
+  letter-spacing: -0.055em;
+}
+
+.last {
+  padding-left: 0.62em;
+}
+
+.role {
+  margin-top: clamp(18px, 3vw, 28px);
+  padding-left: clamp(0px, 9.5vw, 7.1rem);
+  font-size: clamp(0.875rem, 1.6vw, 1rem);
+  color: var(--ink-2);
+}
+
+.role span {
+  color: var(--accent);
+}
+
+.copy {
+  margin-top: clamp(32px, 5vw, 56px);
+}
+
+.lede {
+  max-width: 30ch;
+  font-size: clamp(1.375rem, 2.6vw, 1.875rem);
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -0.015em;
+  text-wrap: balance;
+}
+
+.summary {
+  max-width: 60ch;
+  margin-top: 18px;
+  color: var(--ink-2);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 28px;
+}
+
+/* ---- Signal path ---- */
+.path {
+  margin-top: clamp(40px, 6vw, 56px);
+  padding: clamp(20px, 3vw, 28px);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  background: var(--bg-2);
+}
+
+.pathCaption {
+  display: grid;
+  gap: 4px;
+  margin-bottom: 22px;
+  font-size: 0.9375rem;
+  color: var(--ink-2);
+}
+
+.pathCaption :global(.mono) {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-3);
+}
+
+.pathBody {
+  position: relative;
+}
+
+/* Rail joining the three node dots, with a pulse that runs down it three times. */
+.track {
+  position: absolute;
+  top: 12px;
+  bottom: 12px;
+  left: 7px;
+  width: 2px;
+  background: var(--rule);
+  container-type: size;
+}
+
+.pulse {
+  position: absolute;
+  left: -3px;
+  top: 0;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 25%, transparent);
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .pulse {
+    animation: travel 2.2s cubic-bezier(0.65, 0, 0.35, 1) 0.9s 3;
+  }
+}
+
+@keyframes travel {
+  0% {
+    opacity: 0;
+    transform: translateY(0);
+  }
+  12%,
+  88% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(calc(100cqh - 8px));
+  }
+}
+
+.path ol {
+  display: grid;
+  gap: 22px;
+}
+
+.node {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: 14px;
+  padding-left: 30px;
+}
+
+.node::before {
+  content: "";
+  position: absolute;
+  left: 2px;
+  top: 7px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--bg-2);
+  border: 2px solid var(--accent);
+}
+
+.index {
+  grid-row: span 2;
+  padding-top: 5px;
+  font-size: 0.75rem;
+  color: var(--ink-3);
+}
+
+.stage {
+  font-size: 1.375rem;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
+.detail {
+  font-size: 0.8125rem;
+  color: var(--ink-2);
+}
+
+/* ---- Thermometer ---- */
+.thermo {
+  margin-top: clamp(48px, 7vw, 80px);
+}
+
+.thermoLabel {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 8px;
+  margin-bottom: 14px;
+  font-size: 0.8125rem;
+  color: var(--ink-2);
+}
+
+.modeLow,
+.modeMedium,
+.modeHigh {
+  display: none;
+}
+
+:global(:root:has(#heat-low:checked)) .modeLow,
+:global(:root:has(#heat-medium:checked)) .modeMedium,
+:global(:root:has(#heat-high:checked)) .modeHigh {
+  display: inline;
+}
+
+:global(:root:has(#heat-low:checked)) .modeAuto,
+:global(:root:has(#heat-medium:checked)) .modeAuto,
+:global(:root:has(#heat-high:checked)) .modeAuto {
+  display: none;
+}
+
+.modeAuto,
+.modeLow,
+.modeMedium,
+.modeHigh {
+  color: var(--ink);
+  font-weight: 500;
+}
+
+.thermoLink {
+  margin-left: auto;
+  color: var(--ink-2);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: var(--rule);
+  transition: color 0.2s, text-decoration-color 0.2s;
+}
+
+.thermoLink:hover {
+  color: var(--ink);
+  text-decoration-color: var(--accent);
+}
+
+.scale {
+  position: relative;
+  height: 8px;
+  border-radius: 8px;
+  background: linear-gradient(to right, var(--cool), var(--warm), var(--hot));
+  container-type: inline-size;
+}
+
+.marker {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 20px;
+  height: 20px;
+  margin-top: -10px;
+  border-radius: 50%;
+  background: var(--bg);
+  border: 4px solid var(--accent);
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.18);
+  transform: translateX(calc(var(--heat) * (100cqw - 20px)));
+}
+
+.ticks {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-3);
+}
+
+/* ---- Facts ---- */
+.facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: clamp(40px, 6vw, 64px);
+  border-top: 1px solid var(--rule-strong);
+}
+
+.fact {
+  display: flex;
+  flex-direction: column-reverse;
+  justify-content: flex-end;
+  gap: 4px;
+  padding: 18px 16px 4px 0;
+}
+
+.factValue {
+  font-size: clamp(2rem, 4.5vw, 3.25rem);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+
+.factLabel {
+  font-size: 0.875rem;
+  color: var(--ink-2);
+}
+
+@media (min-width: 720px) {
+  .facts {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .fact + .fact {
+    padding-left: 20px;
+    border-left: 1px solid var(--rule);
+  }
+}
+
+@media (max-width: 719px) {
+  .fact:nth-child(even) {
+    padding-left: 16px;
+    border-left: 1px solid var(--rule);
+  }
+
+  .fact:nth-child(n + 3) {
+    border-top: 1px solid var(--rule);
+  }
+}
+
+@media (min-width: 960px) {
+  .copy {
+    grid-column: 1 / 8;
+  }
+
+  .path {
+    grid-column: 8 / -1;
+    align-self: end;
+  }
+}

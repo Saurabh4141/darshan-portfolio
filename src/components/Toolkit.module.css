@@ -1,0 +1,88 @@
+.section {
+  padding-block: clamp(72px, 10vw, 128px);
+  border-top: 1px solid var(--rule);
+}
+
+.sheet {
+  border-top: 1px solid var(--rule-strong);
+}
+
+.row {
+  position: relative;
+  display: grid;
+  gap: 10px;
+  padding-block: 22px;
+  border-bottom: 1px solid var(--rule);
+}
+
+/* A heat bar slides in along the row's top edge on hover. */
+.row::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -1px;
+  height: 2px;
+  background: var(--accent);
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+  transition: transform 0.45s var(--ease-out);
+}
+
+.row:hover::before {
+  transform: scaleX(1);
+}
+
+.group {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  font-weight: 700;
+  font-size: 1.0625rem;
+}
+
+.index {
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: var(--ink-3);
+}
+
+.items ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 0;
+}
+
+.items li {
+  font-size: clamp(1.125rem, 2vw, 1.375rem);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+.items li:not(:last-child)::after {
+  content: "/";
+  margin-inline: 12px;
+  color: var(--rule);
+  font-weight: 400;
+}
+
+.seen {
+  font-size: 0.8125rem;
+  color: var(--ink-2);
+}
+
+.seenLabel {
+  color: var(--ink-3);
+}
+
+@media (min-width: 900px) {
+  .row {
+    grid-template-columns: minmax(0, 3fr) minmax(0, 6fr) minmax(0, 3fr);
+    align-items: baseline;
+    gap: 24px;
+  }
+
+  .seen {
+    text-align: right;
+  }
+}

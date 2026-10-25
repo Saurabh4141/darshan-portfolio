@@ -1,0 +1,147 @@
+.section {
+  padding-block: clamp(72px, 10vw, 128px);
+  border-top: 1px solid var(--rule);
+  background: var(--band);
+}
+
+.log {
+  --meta: minmax(0, 5fr);
+  --chart: minmax(0, 7fr);
+}
+
+.months,
+.entry {
+  display: grid;
+  grid-template-columns: 1fr;
+  column-gap: clamp(24px, 4vw, 56px);
+}
+
+.months {
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--rule-strong);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-3);
+}
+
+.year {
+  display: none;
+}
+
+.monthRow,
+.track {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.monthRow span {
+  padding-left: 8px;
+  border-left: 1px solid var(--rule);
+}
+
+.entry {
+  row-gap: 14px;
+  padding-block: clamp(24px, 4vw, 40px);
+  border-bottom: 1px solid var(--rule);
+}
+
+.role {
+  font-size: clamp(1.375rem, 2.6vw, 1.75rem);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+
+.company {
+  margin-top: 4px;
+  color: var(--ink-2);
+}
+
+.dates {
+  margin-top: 8px;
+  font-size: 0.8125rem;
+  color: var(--ink-3);
+}
+
+/* The month grid behind each bar, so overlap reads at a glance. */
+.track {
+  align-items: center;
+  height: 28px;
+  background: repeating-linear-gradient(to right, var(--rule) 0 1px, transparent 1px calc(100% / 3)) left /
+    100% 100% no-repeat;
+}
+
+.bar {
+  grid-row: 1;
+  height: 12px;
+  margin-inline: 4px;
+  border-radius: 12px;
+  background: var(--accent);
+  transform-origin: 0 50%;
+}
+
+/* Driven by the whole entry entering, so each bar is fully grown by the time
+   it is on screen — a half-grown bar would misstate the dates. */
+.entry {
+  view-timeline-name: --entry;
+}
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .bar {
+      animation: grow var(--ease-out) both;
+      animation-timeline: --entry;
+      animation-range: entry 0% entry 20%;
+    }
+  }
+}
+
+@keyframes grow {
+  from {
+    transform: scaleX(0.04);
+  }
+}
+
+.points {
+  display: grid;
+  gap: 10px;
+}
+
+.points li {
+  position: relative;
+  max-width: 62ch;
+  padding-left: 22px;
+  color: var(--ink-2);
+}
+
+.points li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.72em;
+  width: 10px;
+  height: 2px;
+  background: var(--ink-3);
+}
+
+@media (min-width: 820px) {
+  .months,
+  .entry {
+    grid-template-columns: var(--meta) var(--chart);
+  }
+
+  .year {
+    display: block;
+  }
+
+  .meta {
+    grid-row: span 2;
+  }
+
+  .monthRow,
+  .track,
+  .points {
+    grid-column: 2;
+  }
+}

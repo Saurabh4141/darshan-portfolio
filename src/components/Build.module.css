@@ -1,0 +1,223 @@
+.section {
+  padding-block: clamp(72px, 10vw, 128px);
+  border-top: 1px solid var(--rule);
+}
+
+.grid {
+  display: grid;
+  gap: clamp(40px, 6vw, 72px);
+}
+
+@media (min-width: 960px) {
+  .grid {
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+    align-items: start;
+  }
+
+  .panelWrap {
+    position: sticky;
+    top: calc(var(--header-h) + 32px);
+  }
+}
+
+/* ---- Story ---- */
+.kind {
+  font-size: 0.8125rem;
+  color: var(--ink-3);
+}
+
+.name {
+  margin-top: 10px;
+  font-size: clamp(2.25rem, 5.5vw, 3.75rem);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.035em;
+}
+
+.tagline {
+  margin-top: 10px;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--ink-2);
+}
+
+.overview {
+  max-width: 54ch;
+  margin-top: 22px;
+  font-size: 1.125rem;
+}
+
+.points {
+  margin-top: 36px;
+  border-top: 1px solid var(--rule);
+}
+
+.points li {
+  display: grid;
+  grid-template-columns: 44px 1fr;
+  padding-block: 20px;
+  border-bottom: 1px solid var(--rule);
+}
+
+.pointIndex {
+  grid-row: span 2;
+  padding-top: 4px;
+  font-size: 0.8125rem;
+  color: var(--ink-3);
+  transition: color 0.2s;
+}
+
+.points h4 {
+  margin: 0;
+  font-size: 1.1875rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.points p {
+  max-width: 56ch;
+  margin-top: 4px;
+  color: var(--ink-2);
+}
+
+.points li:hover .pointIndex {
+  color: var(--accent);
+}
+
+.stack {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 28px;
+}
+
+.stack li {
+  padding: 6px 12px;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  font-size: 0.8125rem;
+  color: var(--ink-2);
+}
+
+/* ---- Control panel: the jacket's remote, drawn in CSS ---- */
+/* A dark device in both themes. */
+.panel {
+  --device: #14191b;
+  --device-ink: #eef1ee;
+  padding: 22px;
+  border: 1px solid transparent;
+  border-radius: 24px;
+  background: var(--device);
+  color: var(--device-ink);
+  box-shadow: 0 30px 60px -30px rgb(0 0 0 / 0.45);
+}
+
+@media (prefers-color-scheme: dark) {
+  .panel {
+    --device: #1b2225;
+    border-color: var(--rule);
+  }
+}
+
+.panelTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  opacity: 0.7;
+}
+
+.led {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 12px 2px var(--accent);
+}
+
+/* Three bars for Low / Medium / High. How many are lit follows --heat:
+   one at Low, two at Medium, three at High, and in between under Auto. */
+.gauge {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  align-items: end;
+  gap: 10px;
+  height: 140px;
+  margin-block: 26px 22px;
+}
+
+.gauge span {
+  height: calc(var(--n) * 33.333%);
+  border-radius: 8px;
+  background: var(--accent);
+  opacity: clamp(0.14, 1 + var(--heat) * 2 - (var(--n) - 1), 1);
+  transition: opacity 0.3s;
+}
+
+.legend {
+  margin-bottom: 10px;
+  padding: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.modes {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+  padding: 4px;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--device-ink) 10%, transparent);
+}
+
+.mode {
+  position: relative;
+  cursor: pointer;
+}
+
+.mode input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  margin: 0;
+  cursor: pointer;
+}
+
+.mode span {
+  display: grid;
+  place-items: center;
+  min-height: 44px;
+  padding: 0 4px;
+  border-radius: 10px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  opacity: 0.75;
+  transition: background-color 0.2s, color 0.2s, opacity 0.2s, transform 0.2s var(--ease-out);
+}
+
+.mode:hover span {
+  opacity: 1;
+}
+
+.mode input:checked + span {
+  background: var(--device-ink);
+  color: var(--device);
+  opacity: 1;
+}
+
+.mode input:active + span {
+  transform: scale(0.96);
+}
+
+.mode input:focus-visible + span {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.note {
+  margin-top: 16px;
+  font-size: 0.875rem;
+  color: var(--ink-2);
+}

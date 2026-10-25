@@ -1,0 +1,63 @@
+.head {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 14px 18px;
+  margin-bottom: clamp(36px, 6vw, 64px);
+}
+
+.channel {
+  font-size: 0.8125rem;
+  color: var(--ink-3);
+}
+
+/* Tick scale: minor ticks every 8px, filled in heat up to this channel. */
+.scale {
+  position: relative;
+  height: 12px;
+  background: repeating-linear-gradient(to right, var(--rule) 0 1px, transparent 1px 8px) bottom / 100% 6px
+    no-repeat;
+  border-bottom: 1px solid var(--rule);
+}
+
+.scale::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -1px;
+  width: calc(var(--fill) * 100%);
+  height: 3px;
+  background: var(--accent);
+  transform-origin: 0 50%;
+}
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .scale::after {
+      animation: fill linear both;
+      animation-timeline: view();
+      animation-range: entry 20% cover 35%;
+    }
+  }
+}
+
+@keyframes fill {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+.title {
+  grid-column: 1 / -1;
+  font-size: clamp(2.5rem, 7vw, 5rem);
+  font-weight: 800;
+  line-height: 0.95;
+  letter-spacing: -0.035em;
+}
+
+.intro {
+  grid-column: 1 / -1;
+  max-width: 58ch;
+  font-size: 1.125rem;
+  color: var(--ink-2);
+}

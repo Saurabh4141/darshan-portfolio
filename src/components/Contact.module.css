@@ -1,0 +1,75 @@
+.section {
+  padding-block: clamp(72px, 10vw, 128px) clamp(88px, 12vw, 160px);
+  border-top: 1px solid var(--rule);
+  /* The fixed profile rail fades out while this is on screen. */
+  view-timeline-name: --contact;
+}
+
+.icon {
+  width: 18px;
+  height: 18px;
+}
+
+.pdf {
+  font-size: 0.6875rem;
+  font-weight: 500;
+  opacity: 0.7;
+}
+
+.card {
+  padding-top: 20px;
+  border-top: 1px solid var(--rule-strong);
+}
+
+.label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-3);
+}
+
+/* The address is the call to action, so it's set large; long on small
+   screens, it may break anywhere rather than overflow. */
+.email {
+  display: inline-flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0 0.3em;
+  margin-top: 10px;
+  font-size: clamp(1.5rem, 5.4vw, 4.25rem);
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.035em;
+  overflow-wrap: anywhere;
+  background: linear-gradient(var(--accent), var(--accent)) 0 100% / 0 4px no-repeat;
+  padding-bottom: 6px;
+  transition: background-size 0.5s var(--ease-out);
+}
+
+.email:hover,
+.email:focus-visible {
+  background-size: 100% 4px;
+}
+
+.emailArrow {
+  display: inline-block;
+  color: var(--accent);
+  transition: transform 0.3s var(--ease-out);
+}
+
+.email:hover .emailArrow {
+  transform: translateX(8px);
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 32px;
+}
+
+.location {
+  margin-top: 28px;
+  font-size: 0.8125rem;
+  color: var(--ink-3);
+}

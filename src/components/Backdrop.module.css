@@ -1,0 +1,193 @@
+/* ------------------------------------------------------------------
+   Fixed circuit-board backdrop. Painted once; scrolling never repaints it.
+   The only moving parts are the corner module fading out after the hero
+   (opacity) and the occasional pulse along a trace.
+   ------------------------------------------------------------------ */
+.backdrop {
+  --board-line: color-mix(in srgb, var(--ink) 14%, var(--bg));
+  --board-dot: rgb(15 19 18 / 0.14);
+  --glow: 15%;
+  position: fixed;
+  inset: 0;
+  /* Behind all page content, above the canvas background. */
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+  contain: strict;
+}
+
+@media (prefers-color-scheme: dark) {
+  .backdrop {
+    --board-line: color-mix(in srgb, var(--ink) 13%, var(--bg));
+    --board-dot: rgb(231 235 232 / 0.09);
+    --glow: 20%;
+  }
+}
+
+/* Perfboard: a dot every 22px, fading out toward the middle where text sits. */
+.grid {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 1px 1px, var(--board-dot) 1.2px, transparent 1.7px) 0 0 / 22px 22px;
+  mask-image: linear-gradient(to right, #000, transparent 24%, transparent 76%, #000);
+}
+
+@media (max-width: 719px) {
+  .grid {
+    opacity: 0.6;
+  }
+}
+
+/* Thermal glow in two corners. Three fixed-colour layers cross-faded by
+   --heat (cool → warm → hot), so only opacity changes as the page warms. */
+.glow {
+  position: absolute;
+  inset: 0;
+  --c: var(--cool);
+  background:
+    radial-gradient(60vmax 46vmax at 100% 0%, color-mix(in srgb, var(--c) var(--glow), transparent), transparent 70%),
+    radial-gradient(56vmax 44vmax at 0% 100%, color-mix(in srgb, var(--c) var(--glow), transparent), transparent 70%);
+}
+
+.cool {
+  opacity: clamp(0, 1 - var(--heat) * 2, 1);
+}
+
+.warm {
+  --c: var(--warm);
+  opacity: min(var(--heat) * 2, 2 - var(--heat) * 2);
+}
+
+.hot {
+  --c: var(--hot);
+  opacity: clamp(0, var(--heat) * 2 - 1, 1);
+}
+
+/* ---- Edge boards: traces in from both sides, wide screens only ---- */
+.edge {
+  display: none;
+}
+
+@media (min-width: 1100px) {
+  .edge {
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: block;
+    width: 180px;
+    height: 100%;
+    overflow: visible;
+  }
+
+  .right {
+    left: auto;
+    right: 0;
+    transform: scaleX(-1);
+  }
+}
+
+.trace {
+  fill: none;
+  stroke: var(--board-line);
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+
+.pad {
+  fill: var(--bg);
+  stroke: var(--board-line);
+  stroke-width: 2;
+}
+
+.via {
+  fill: var(--board-line);
+}
+
+/* A short dash that runs the length of the trace, then rests: one pass
+   every ~9s per trace, staggered so they rarely overlap. */
+.pulse {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-dasharray: 8 100;
+  stroke-dashoffset: 8;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .pulse {
+    animation: pulse 9.3s linear infinite;
+  }
+}
+
+@keyframes pulse {
+  0% {
+    stroke-dashoffset: 8;
+  }
+  16%,
+  100% {
+    stroke-dashoffset: -100;
+  }
+}
+
+/* ---- Module, top-right corner: the board's "moon" ---- */
+.module {
+  display: none;
+}
+
+@media (min-width: 1100px) {
+  .module {
+    position: absolute;
+    top: calc(var(--header-h) + 28px);
+    right: -36px;
+    display: block;
+    width: clamp(150px, 13vw, 200px);
+    height: auto;
+    opacity: 0.8;
+    rotate: 9deg;
+  }
+
+  /* Steps back once the hero has scrolled away, so it never sits behind
+     the Build panel or other right-hand content. */
+  @supports (animation-timeline: scroll()) {
+    .module {
+      animation: module-out linear both;
+      animation-timeline: scroll(root block);
+      animation-range: 0 70vh;
+    }
+  }
+}
+
+@keyframes module-out {
+  to {
+    opacity: 0;
+    translate: 24px 0;
+  }
+}
+
+.board {
+  fill: var(--bg-2);
+  stroke: var(--board-line);
+  stroke-width: 2;
+}
+
+.pin {
+  fill: var(--board-line);
+}
+
+.can {
+  fill: var(--bg-3);
+  stroke: var(--board-line);
+  stroke-width: 2;
+}
+
+.antenna {
+  fill: none;
+  stroke: var(--board-line);
+  stroke-width: 3;
+  stroke-linejoin: round;
+}
+
+.led {
+  fill: var(--accent);
+}

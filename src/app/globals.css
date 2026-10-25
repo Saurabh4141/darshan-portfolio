@@ -1,0 +1,332 @@
+/* ------------------------------------------------------------------
+   Heat
+   The site's one accent is a temperature, not a fixed colour. --heat runs
+   from 0 (cool teal) through amber to 1 (ember), mirroring the Thermowear
+   Jacket's Low / Medium / High levels. In Auto (the default) the page warms
+   as you scroll; the radios in the Build section pin it to a level. All of
+   it is CSS: a registered number, color-mix(), and :has().
+   ------------------------------------------------------------------ */
+@property --heat {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0.5;
+}
+
+@keyframes heat-auto {
+  from {
+    --heat: 0;
+  }
+  to {
+    --heat: 1;
+  }
+}
+
+/* ------------------------------------------------------------------
+   Tokens
+   ------------------------------------------------------------------ */
+:root {
+  color-scheme: light dark;
+
+  --bg: #f2f3ef;
+  --bg-2: #e8eae4;
+  --bg-3: #dde0d8;
+  --ink: #0f1312;
+  --ink-2: #3a423e;
+  --ink-3: #555e5a;
+  --rule: #cdd2ca;
+  --rule-strong: #0f1312;
+  --on-ink: #f2f3ef;
+
+  /* Heat stops, tuned for ≥3:1 against the background (marks, not text). */
+  --cool: #16839e;
+  --warm: #b0730a;
+  --hot: #cf3f22;
+
+  --font-sans: var(--font-bricolage), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, "SFMono-Regular", Consolas, monospace;
+
+  --gutter: clamp(16px, 4vw, 48px);
+  --max: 1200px;
+  --header-h: 60px;
+  --radius: 14px;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+
+  --heat: 0.5;
+  --accent: color-mix(
+    in oklab,
+    color-mix(in oklab, var(--cool), var(--warm) calc(clamp(0, var(--heat) * 2, 1) * 100%)),
+    var(--hot) calc(clamp(0, var(--heat) * 2 - 1, 1) * 100%)
+  );
+  --accent-soft: color-mix(in oklab, var(--accent) 16%, var(--bg));
+  /* Tinted section bands stay slightly see-through so the board shows. */
+  --band: color-mix(in srgb, var(--bg-2) 84%, transparent);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0c0f10;
+    --bg-2: #13181a;
+    --bg-3: #1b2124;
+    --ink: #e7ebe8;
+    --ink-2: #b4bcb8;
+    --ink-3: #8e9893;
+    --rule: #262e31;
+    --rule-strong: #e7ebe8;
+    --on-ink: #0c0f10;
+
+    --cool: #4ec1db;
+    --warm: #f0b03c;
+    --hot: #ff6a48;
+  }
+}
+
+/* Auto: warm up with scroll where scroll timelines exist; elsewhere the
+   accent stays at the amber midpoint. */
+@supports (animation-timeline: scroll()) {
+  :root {
+    animation: heat-auto linear both;
+    animation-timeline: scroll(root block);
+  }
+}
+
+:root:has(#heat-low:checked) {
+  animation: none;
+  --heat: 0;
+}
+
+:root:has(#heat-medium:checked) {
+  animation: none;
+  --heat: 0.5;
+}
+
+:root:has(#heat-high:checked) {
+  animation: none;
+  --heat: 1;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  :root {
+    transition: --heat 0.6s var(--ease-out);
+  }
+}
+
+/* ------------------------------------------------------------------
+   Base
+   ------------------------------------------------------------------ */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  scroll-padding-top: calc(var(--header-h) + 20px);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 1.0625rem;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: clip;
+  /* Lets the fixed profile rail follow the Contact section's view timeline. */
+  timeline-scope: --contact;
+}
+
+h1,
+h2,
+h3,
+p,
+ul,
+ol,
+dl,
+dd,
+figure,
+fieldset {
+  margin: 0;
+}
+
+ul,
+ol {
+  padding: 0;
+  list-style: none;
+}
+
+fieldset {
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+svg {
+  display: block;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+}
+
+main:focus {
+  outline: none;
+}
+
+::selection {
+  background: var(--ink);
+  color: var(--bg);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+/* ------------------------------------------------------------------
+   Shared utilities
+   ------------------------------------------------------------------ */
+.wrap {
+  width: 100%;
+  max-width: calc(var(--max) + var(--gutter) * 2);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+.mono {
+  font-family: var(--font-mono);
+  letter-spacing: 0;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.skip-link {
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  z-index: 100;
+  padding: 10px 16px;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--bg);
+  font-weight: 600;
+  transform: translateY(-160%);
+  transition: transform 0.2s var(--ease-out);
+}
+
+.skip-link:focus-visible {
+  transform: none;
+}
+
+/* Inline text link: underline in the current heat that thickens on hover. */
+.link {
+  text-decoration: underline;
+  text-decoration-color: var(--accent);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 4px;
+  transition: text-decoration-thickness 0.2s, text-underline-offset 0.2s;
+}
+
+.link:hover {
+  text-decoration-thickness: 4px;
+  text-underline-offset: 3px;
+}
+
+/* Buttons: ink pill (primary) and outlined pill (quiet). */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 46px;
+  padding: 10px 20px;
+  border: 1.5px solid var(--ink);
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--bg);
+  font-weight: 600;
+  line-height: 1.2;
+  cursor: pointer;
+  transition: transform 0.25s var(--ease-out), background-color 0.2s, color 0.2s;
+}
+
+.btn--quiet {
+  background: transparent;
+  color: var(--ink);
+}
+
+.btn .arrow {
+  transition: transform 0.25s var(--ease-out);
+}
+
+@media (hover: hover) {
+  .btn:hover {
+    transform: translateY(-2px);
+  }
+  .btn--quiet:hover {
+    background: var(--ink);
+    color: var(--bg);
+  }
+  .btn:hover .arrow {
+    transform: translate(3px, 0);
+  }
+  .btn:hover .arrow--down {
+    transform: translate(0, 3px);
+  }
+}
+
+.btn:active {
+  transform: translateY(0) scale(0.98);
+}
+
+/* ------------------------------------------------------------------
+   Scroll reveals. Content is fully visible by default; browsers with
+   view timelines lift it in as it enters. Nothing waits on script.
+   ------------------------------------------------------------------ */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+}
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .reveal {
+      animation: rise linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 55%;
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

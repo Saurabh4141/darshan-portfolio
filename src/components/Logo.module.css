@@ -1,0 +1,28 @@
+.mark {
+  flex: none;
+  overflow: visible;
+}
+
+.channel {
+  stroke: var(--bg);
+}
+
+.core {
+  fill: var(--accent);
+}
+
+/* Mercury level follows the page heat: 40% full when cool, full when hot.
+   Scaled from the bulb so it always grows out of it. */
+.mercury {
+  stroke: var(--accent);
+  transform-box: view-box;
+  transform-origin: 10px 25.5px;
+  transform: scaleY(calc(0.4 + var(--heat) * 0.6));
+  transition: transform 0.45s var(--ease-out);
+}
+
+/* Hover the link around the mark: the mercury shoots to the top. */
+:global(a):hover > .mark .mercury,
+:global(a):focus-visible > .mark .mercury {
+  transform: scaleY(1);
+}

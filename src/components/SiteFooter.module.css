@@ -1,0 +1,42 @@
+.footer {
+  border-top: 1px solid var(--rule);
+  padding-block: 28px;
+}
+
+/* Room for the fixed resume pill, so it never covers "Back to top". */
+@media (max-width: 600px) {
+  .footer {
+    padding-bottom: 76px;
+  }
+}
+
+.bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 28px;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+}
+
+.meta {
+  margin-right: auto;
+  font-size: 0.8125rem;
+  color: var(--ink-3);
+}
+
+.top {
+  padding: 8px 0;
+  font-size: 0.8125rem;
+  color: var(--ink-2);
+  transition: color 0.2s;
+}
+
+.top:hover {
+  color: var(--ink);
+}
