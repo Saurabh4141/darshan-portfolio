@@ -68,8 +68,9 @@ src/
 public/
   Darshan_Gaikwad_Resume.pdf   the published resume
   .well-known/security.txt     security contact
-next.config.ts  security headers, CSP, no-AI-training headers
-SECURITY.md     every security measure, its limits, and how to check it
+next.config.ts       security headers, CSP, no-AI-training headers
+ecosystem.config.js  PM2 process for the server (port 3002)
+SECURITY.md          every security measure, its limits, and how to check it
 ```
 
 ## Content and the resume
@@ -122,42 +123,79 @@ so a plain `npm run build` is already correct for production.
 `NEXT_PUBLIC_SITE_URL` overrides it for a build meant for somewhere else (a
 staging copy, say; see `.env.example`).
 
-### 1. DNS
+### Server requirements
 
-At the domain registrar, point both names at the server's IP address:
+| Needs | Tested with (2026-10-25) |
+| --- | --- |
+| Node.js 20.9+ | **22.23.4** — the production server's version: `npm ci`, lint, typecheck, build and `next start` all pass |
+| npm with lockfile v3 | **10.9.9** |
+| A reverse proxy with HTTPS | nginx **1.24** (config below uses 1.24 syntax) |
+| A process manager | PM2 6 (`ecosystem.config.js`) |
+| Internet access during `npm run build` | `next/font` downloads the two fonts once at build time; visitors never contact Google |
 
-| Type | Name | Value |
-| --- | --- | --- |
-| A | `@` (darshangaikwad.cloud) | server IPv4 |
-| A | `www` | server IPv4 |
+The lockfile includes the Linux native binaries (`@next/swc-linux-x64-gnu`
+and friends), so `npm ci` on Ubuntu installs the right ones even though the
+lockfile was generated on Windows. The site does not use `sharp`. It shares
+nothing with other apps on the server: its own `node_modules`, its own port.
 
-(Plus matching `AAAA` records if the server has IPv6.)
+### 1. DNS — done
 
-### 2. Build and run
+`darshangaikwad.cloud` and `www.darshangaikwad.cloud` both have A records for
+**147.93.97.25** (the same server as gaikwadsaurabh.com).
+
+### 2. Build and run on port 3002
 
 ```bash
 git clone https://github.com/Saurabh4141/darshan-portfolio.git
 cd darshan-portfolio
 npm ci
 npm run build
-npm start -- -p 3002        # pick a port that's free on the server
-```
-
-To keep it running across reboots, use a process manager such as PM2:
-
-```bash
-pm2 start npm --name darshan-portfolio -- start -- -p 3002
+pm2 start ecosystem.config.js
 pm2 save
 ```
 
-To ship an update later: `git pull && npm ci && npm run build && pm2 restart darshan-portfolio`.
+`ecosystem.config.js` runs `next start -p 3002`, beside gaikwadsaurabh.com on
+3001. Check the port is free first (`ss -ltnp | grep 3002` prints nothing);
+if not, change it in `ecosystem.config.js` and in nginx together. If PM2 was
+never set to start on boot, run `pm2 startup` once and follow its instruction.
 
-### 3. nginx in front, with HTTPS
+Quick check before touching nginx:
+`curl -s -o /dev/null -w "%{http_code}\n" -A "Mozilla/5.0 Chrome/130" http://127.0.0.1:3002/` → `200`.
 
-Get a certificate covering both names (`sudo certbot --nginx -d
-darshangaikwad.cloud -d www.darshangaikwad.cloud`), then end up with three
-server blocks — everything redirects to the one canonical address, which
-proxies to the app:
+To ship an update later:
+
+```bash
+cd darshan-portfolio && git pull && npm ci && npm run build && pm2 restart darshan-portfolio
+```
+
+### 3. nginx and HTTPS
+
+**a. Temporary HTTP block** so Certbot can verify the domain. Save as
+`/etc/nginx/sites-available/darshangaikwad.cloud`:
+
+```nginx
+server {
+    listen 80;
+    listen [::]:80;
+    server_name darshangaikwad.cloud www.darshangaikwad.cloud;
+    location / { proxy_pass http://127.0.0.1:3002; }
+}
+```
+
+```bash
+sudo ln -s /etc/nginx/sites-available/darshangaikwad.cloud /etc/nginx/sites-enabled/
+sudo nginx -t && sudo systemctl reload nginx
+```
+
+**b. Certificate** for both names (it only fetches the certificate; it does
+not edit the config):
+
+```bash
+sudo certbot certonly --nginx -d darshangaikwad.cloud -d www.darshangaikwad.cloud
+```
+
+**c. Final config.** Replace the file's contents with the following —
+everything redirects to the one canonical address, which proxies to the app:
 
 ```nginx
 # http (both names) → https://darshangaikwad.cloud
@@ -170,23 +208,25 @@ server {
 
 # https://www → https://darshangaikwad.cloud
 server {
-    listen 443 ssl;
-    listen [::]:443 ssl;
-    http2 on;
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
     server_name www.darshangaikwad.cloud;
     ssl_certificate     /etc/letsencrypt/live/darshangaikwad.cloud/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/darshangaikwad.cloud/privkey.pem;
+    include /etc/letsencrypt/options-ssl-nginx.conf;
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
     return 301 https://darshangaikwad.cloud$request_uri;
 }
 
 # The site
 server {
-    listen 443 ssl;
-    listen [::]:443 ssl;
-    http2 on;
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
     server_name darshangaikwad.cloud;
     ssl_certificate     /etc/letsencrypt/live/darshangaikwad.cloud/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/darshangaikwad.cloud/privkey.pem;
+    include /etc/letsencrypt/options-ssl-nginx.conf;
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
     server_tokens off;
 
     location / {
@@ -199,14 +239,27 @@ server {
 }
 ```
 
-(`http2 on;` needs nginx 1.25.1+; on older versions write
-`listen 443 ssl http2;` instead.) Test with `sudo nginx -t`, then
-`sudo systemctl reload nginx`.
+```bash
+sudo nginx -t && sudo systemctl reload nginx
+```
+
+Notes for nginx 1.24:
+
+- `http2` goes on the `listen` line; the separate `http2 on;` directive only
+  exists from 1.25.1 and fails `nginx -t` here.
+- The two `include`/`ssl_dhparam` lines are the files Certbot created for
+  gaikwadsaurabh.com. If `nginx -t` says either is missing, delete those lines.
+- If gaikwadsaurabh.com's `listen 443` lines have no `http2`, nginx may warn
+  "protocol options redefined" — harmless, but adding `http2` there too keeps
+  the two sites consistent.
+- Certificate renewal is automatic (Certbot's systemd timer);
+  `sudo certbot renew --dry-run` confirms it.
 
 ### Go-live checklist
 
-- [ ] DNS: `darshangaikwad.cloud` and `www` resolve to the server
-- [ ] App built and running under PM2; survives a reboot (`pm2 startup`)
+- [x] DNS: `darshangaikwad.cloud` and `www` resolve to the server (147.93.97.25)
+- [ ] Port 3002 free; app built and running under PM2 (`pm2 status`); survives a reboot (`pm2 startup` done once)
+- [ ] `sudo nginx -t` passes and gaikwadsaurabh.com still loads afterwards
 - [ ] https://darshangaikwad.cloud loads with a valid certificate
 - [ ] `http://…` and `https://www.…` both 301 to `https://darshangaikwad.cloud/`
 - [ ] Browser User-Agent gets 200, `GPTBot` gets 403, headers present — commands in [SECURITY.md](SECURITY.md#checking-it)
