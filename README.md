@@ -69,7 +69,7 @@ public/
   Darshan_Gaikwad_Resume.pdf   the published resume
   .well-known/security.txt     security contact
 next.config.ts       security headers, CSP, no-AI-training headers
-ecosystem.config.js  PM2 process for the server (port 3002)
+ecosystem.config.js  PM2 process for the server (port 3011)
 SECURITY.md          every security measure, its limits, and how to check it
 ```
 
@@ -101,7 +101,7 @@ npm run dev        # http://localhost:3000
 | --- | --- |
 | `npm run dev` | Development server |
 | `npm run build` | Production build |
-| `npm start` | Serve the production build (port 3000; `npm start -- -p 3002` for another) |
+| `npm start` | Serve the production build (port 3000; `npm start -- -p 3011` for another) |
 | `npm run lint` | ESLint (Next core-web-vitals + TypeScript rules) |
 | `npm run typecheck` | `tsc --noEmit` |
 
@@ -143,29 +143,29 @@ nothing with other apps on the server: its own `node_modules`, its own port.
 `darshangaikwad.cloud` and `www.darshangaikwad.cloud` both have A records for
 **147.93.97.25** (the same server as gaikwadsaurabh.com).
 
-### 2. Build and run on port 3002
+### 2. Build and run on port 3011
 
 ```bash
-git clone https://github.com/Saurabh4141/darshan-portfolio.git
-cd darshan-portfolio
+git clone https://github.com/Saurabh4141/darshan-portfolio.git /var/www/darshangaikwad
+cd /var/www/darshangaikwad
 npm ci
 npm run build
 pm2 start ecosystem.config.js
 pm2 save
 ```
 
-`ecosystem.config.js` runs `next start -p 3002`, beside gaikwadsaurabh.com on
-3001. Check the port is free first (`ss -ltnp | grep 3002` prints nothing);
+`ecosystem.config.js` runs `next start -p 3011` as PM2 process `darshangaikwad`. Ports
+3000–3004 and 3010 belong to other apps on the server. Check the port is free first (`ss -ltnp | grep 3011` prints nothing);
 if not, change it in `ecosystem.config.js` and in nginx together. If PM2 was
 never set to start on boot, run `pm2 startup` once and follow its instruction.
 
 Quick check before touching nginx:
-`curl -s -o /dev/null -w "%{http_code}\n" -A "Mozilla/5.0 Chrome/130" http://127.0.0.1:3002/` → `200`.
+`curl -s -o /dev/null -w "%{http_code}\n" -A "Mozilla/5.0 Chrome/130" http://127.0.0.1:3011/` → `200`.
 
 To ship an update later:
 
 ```bash
-cd darshan-portfolio && git pull && npm ci && npm run build && pm2 restart darshan-portfolio
+cd /var/www/darshangaikwad && git pull && npm ci && npm run build && pm2 restart darshangaikwad
 ```
 
 ### 3. nginx and HTTPS
@@ -178,7 +178,7 @@ server {
     listen 80;
     listen [::]:80;
     server_name darshangaikwad.cloud www.darshangaikwad.cloud;
-    location / { proxy_pass http://127.0.0.1:3002; }
+    location / { proxy_pass http://127.0.0.1:3011; }
 }
 ```
 
@@ -230,7 +230,7 @@ server {
     server_tokens off;
 
     location / {
-        proxy_pass http://127.0.0.1:3002;
+        proxy_pass http://127.0.0.1:3011;
         proxy_http_version 1.1;
         proxy_set_header Host $host;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -258,7 +258,7 @@ Notes for nginx 1.24:
 ### Go-live checklist
 
 - [x] DNS: `darshangaikwad.cloud` and `www` resolve to the server (147.93.97.25)
-- [ ] Port 3002 free; app built and running under PM2 (`pm2 status`); survives a reboot (`pm2 startup` done once)
+- [x] Port 3011 free; app built and running under PM2 (`pm2 status`); survives a reboot (`pm2 startup` done once)
 - [ ] `sudo nginx -t` passes and gaikwadsaurabh.com still loads afterwards
 - [ ] https://darshangaikwad.cloud loads with a valid certificate
 - [ ] `http://…` and `https://www.…` both 301 to `https://darshangaikwad.cloud/`
