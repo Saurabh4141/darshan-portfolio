@@ -112,7 +112,7 @@ function Module() {
 
 export default function Backdrop() {
   return (
-    <div className={styles.backdrop} aria-hidden="true">
+    <div className={styles.backdrop} data-backdrop="" aria-hidden="true">
       <div className={styles.grid} />
       <div className={`${styles.glow} ${styles.cool}`} />
       <div className={`${styles.glow} ${styles.warm}`} />
