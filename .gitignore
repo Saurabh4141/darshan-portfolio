@@ -11,3 +11,8 @@ npm-debug.log*
 Thumbs.db
 # The original resume stays local; the site serves its copy in public/.
 /*.pdf
+
+# Personal job-hunt pages stay local and are never pushed.
+/applied-jobs.html
+/application-tracker.html
+/pune-fresher-walkins.html

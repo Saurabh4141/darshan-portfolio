@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { jobs, type Fit, type JobType, type Status } from "@/content/jobs";
+import { jobs, type Fit, type JobListing, type JobType, type Status } from "@/content/jobs";
 import styles from "./JobsTable.module.css";
 
 const TABS: { type: JobType; label: string }[] = [
@@ -12,9 +12,55 @@ const TABS: { type: JobType; label: string }[] = [
 type City = "all" | "Pune" | "Other";
 type Filters = { city: City; posted: number; fit: "" | Fit; status: "" | Status };
 
+type SortKey = "status" | "company" | "role" | "posted" | "openings" | "applications" | "location" | "fit" | "source";
+type Sort = { key: SortKey; dir: 1 | -1 } | null;
+
+const COLUMNS: { key: SortKey; label: string }[] = [
+  { key: "status", label: "Status" },
+  { key: "company", label: "Company" },
+  { key: "role", label: "Role" },
+  { key: "posted", label: "Posted on" },
+  { key: "openings", label: "Openings" },
+  { key: "applications", label: "Applications" },
+  { key: "location", label: "Location" },
+  { key: "fit", label: "Fit" },
+];
+
+const STATUS_ORDER: Record<Status, number> = { Open: 0, Unverified: 1, Past: 2 };
+const FIT_ORDER: Record<Fit, number> = { Yes: 0, Maybe: 1, Unknown: 2, No: 3 };
+const firstNumber = (s: string) => {
+  const m = /\d+/.exec(s);
+  return m ? Number(m[0]) : null;
+};
+
+/** Comparable value for a column; null means "no value" and always sorts last. */
+function sortValue(j: JobListing, key: SortKey): string | number | null {
+  switch (key) {
+    case "status":
+      return STATUS_ORDER[j.status];
+    case "fit":
+      return FIT_ORDER[j.fit];
+    case "posted":
+      return j.ageDays;
+    case "openings":
+      return firstNumber(j.openings);
+    case "applications":
+      return firstNumber(j.applications);
+    case "company":
+      return j.company.toLowerCase();
+    case "role":
+      return j.role.toLowerCase();
+    case "location":
+      return j.location.toLowerCase();
+    case "source":
+      return j.source;
+  }
+}
+
 export default function JobsTable() {
   const [tab, setTab] = useState<JobType>("Job");
   const [filters, setFilters] = useState<Filters>({ city: "all", posted: 0, fit: "", status: "" });
+  const [sort, setSort] = useState<Sort>(null);
 
   const set = <K extends keyof Filters>(key: K, value: Filters[K]) => setFilters((f) => ({ ...f, [key]: value }));
 
@@ -26,8 +72,21 @@ export default function JobsTable() {
       (!filters.fit || j.fit === filters.fit) &&
       (!filters.status || j.status === filters.status),
   );
-  const rows = matching.filter((j) => j.type === tab);
+  const inTab = matching.filter((j) => j.type === tab);
+  const rows = sort
+    ? inTab
+        .map((j, i) => ({ j, i, v: sortValue(j, sort.key) }))
+        .sort((a, b) => {
+          if (a.v === null && b.v === null) return a.i - b.i;
+          if (a.v === null) return 1;
+          if (b.v === null) return -1;
+          const c = typeof a.v === "number" && typeof b.v === "number" ? a.v - b.v : String(a.v).localeCompare(String(b.v));
+          return c * sort.dir || a.i - b.i;
+        })
+        .map((x) => x.j)
+    : inTab;
   const count = (type: JobType) => matching.filter((j) => j.type === type).length;
+  const toggleSort = (key: SortKey) => setSort((s) => (s && s.key === key ? { key, dir: s.dir === 1 ? -1 : 1 } : { key, dir: 1 }));
 
   return (
     <div>
@@ -96,16 +155,32 @@ export default function JobsTable() {
         <table className={styles.table}>
           <thead>
             <tr>
-              <th scope="col">Status</th>
-              <th scope="col">Company</th>
-              <th scope="col">Role</th>
-              <th scope="col">Posted on</th>
-              <th scope="col">Openings</th>
-              <th scope="col">Applications</th>
-              <th scope="col">Location</th>
-              <th scope="col">Fit</th>
+              {COLUMNS.map((c) => (
+                <th
+                  key={c.key}
+                  scope="col"
+                  aria-sort={sort?.key === c.key ? (sort.dir === 1 ? "ascending" : "descending") : "none"}
+                >
+                  <button type="button" className={styles.sortBtn} onClick={() => toggleSort(c.key)}>
+                    {c.label}
+                    <span className={styles.arrow} aria-hidden="true">
+                      {sort?.key === c.key ? (sort.dir === 1 ? "▲" : "▼") : "⇅"}
+                    </span>
+                  </button>
+                </th>
+              ))}
               <th scope="col">Details</th>
-              <th scope="col">Source</th>
+              <th
+                scope="col"
+                aria-sort={sort?.key === "source" ? (sort.dir === 1 ? "ascending" : "descending") : "none"}
+              >
+                <button type="button" className={styles.sortBtn} onClick={() => toggleSort("source")}>
+                  Source
+                  <span className={styles.arrow} aria-hidden="true">
+                    {sort?.key === "source" ? (sort.dir === 1 ? "▲" : "▼") : "⇅"}
+                  </span>
+                </button>
+              </th>
             </tr>
           </thead>
           <tbody>
