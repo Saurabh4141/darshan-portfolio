@@ -26,7 +26,7 @@ export const profile = {
   email: "darshgaikwad2005@gmail.com",
   linkedin: "https://linkedin.com/in/darshan-gaikwad-13b139286",
   /** A copy of the resume in public/; the original in the project root is never served. */
-  resume: "/Darshan_Gaikwad_Resume.pdf",
+  resume: "/Darshan_Gaikwad_Resume_NOV_2026.pdf",
   seeking: "Seeking an entry-level Software Developer role",
   intro:
     "I build software that connects the physical and the digital — from a temperature sensor wired to an ESP32 to the Flutter app that shows its reading on a phone.",

@@ -66,7 +66,7 @@ src/
                 bots.ts (crawler allow/block lists)
   proxy.ts      bot and scraper blocking (403)
 public/
-  Darshan_Gaikwad_Resume.pdf   the published resume
+  Darshan_Gaikwad_Resume_NOV_2026.pdf   the published resume
   .well-known/security.txt     security contact
 next.config.ts       security headers, CSP, no-AI-training headers
 ecosystem.config.js  PM2 process for the server (port 3011)
@@ -78,10 +78,12 @@ SECURITY.md          every security measure, its limits, and how to check it
 All copy lives in [`src/content/profile.ts`](src/content/profile.ts) and comes
 from Darshan's resume. Nothing is invented; when editing, keep it that way.
 
-- The **published resume** is `public/Darshan_Gaikwad_Resume.pdf`, served at
-  `/Darshan_Gaikwad_Resume.pdf` and linked from the resume pill and Contact
-  (`profile.resume`). To publish a new CV, replace this file (same name), or
-  add a new one and update `profile.resume`.
+- The **published resume** is `public/Darshan_Gaikwad_Resume_NOV_2026.pdf`,
+  served at `/Darshan_Gaikwad_Resume_NOV_2026.pdf` and linked from the resume
+  pill and Contact (`profile.resume`). The old address
+  `/Darshan_Gaikwad_Resume.pdf` redirects to it (`redirects()` in
+  `next.config.ts`). To publish a new CV, replace this file (same name), or add
+  a new one and update `profile.resume` and that redirect.
 - The **original** resume file is kept outside this repository. Any `*.pdf`
   dropped in the project root is git-ignored (`/*.pdf`), so a working copy
   there is never committed by accident.

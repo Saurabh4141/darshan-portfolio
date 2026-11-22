@@ -60,6 +60,16 @@ const nextConfig: NextConfig = {
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },
+  // The resume was renamed; links already shared to the old name still work.
+  async redirects() {
+    return [
+      {
+        source: "/Darshan_Gaikwad_Resume.pdf",
+        destination: "/Darshan_Gaikwad_Resume_NOV_2026.pdf",
+        permanent: false,
+      },
+    ];
+  },
 };
 
 export default nextConfig;
