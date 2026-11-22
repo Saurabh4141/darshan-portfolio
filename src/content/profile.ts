@@ -94,7 +94,7 @@ export const timelineMonths = ["Jan", "Feb", "Mar"];
 export const experience = [
   {
     role: "IoT & Robotics Intern",
-    company: "Incubator Pvt. Ltd.",
+    company: "Incubators Systems Pvt. Ltd.",
     place: "Pune",
     dates: "Jan 2026 – Feb 2026",
     // Inclusive month indexes into timelineMonths.
